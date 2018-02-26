@@ -11,10 +11,10 @@
  * State changes occur as a function of the variable probability, which defaults to 0.15, but may be specified by the user.
 */
 
-int main(int argc, char ** argv) {
-	int opt,size,sequence;
+int main(int argc, char ** argv) {\
+
+	int opt,size,printIts,sequence;
 	float prob,treeDens,propBurn;
-	char* printIts;
 	
 	// set defaults
 	sequence = 0;
@@ -28,16 +28,47 @@ int main(int argc, char ** argv) {
 		switch(opt) {
 			case 'p':
 				sequence = 1;
-				printIts = optarg;
+				printIts = strtol(optarg,NULL,10);
 				break;
 		}
 	}
 
 	for(int i = optind; i < argc; i++) {
-		printf("%s\n",argv[i]);
+		if(optind == 2) {
+			switch(i) {
+				case 2:
+					size = strtol(argv[i],NULL,10);
+					break;
+				case 3: 
+					prob = strtof(argv[i],NULL);
+					break;
+				case 4:
+					treeDens = strtof(argv[i],NULL);
+					break;
+				case 5:
+					propBurn = strtof(argv[i],NULL);
+					break;
+			}
+		}
+		else if(optind == 1) {
+			switch(i) {
+				case 1:
+					size = strtol(argv[i],NULL,10);
+					break;	
+				case 2:
+					prob = strtof(argv[i],NULL);
+					break;
+				case 3: 
+					treeDens = strtof(argv[i],NULL);
+					break;
+				case 4:
+					propBurn = strtof(argv[i],NULL);
+					break;
+			}
+		}
 	}
 
-	printf("size:%d\nprintIts:%s\nsequence:%d\nprob:%f\ntreeDens%f\npropBurn%f\n\n",size,printIts,sequence,prob,treeDens,propBurn);
+	printf("size: %d\nprintIts: %d\nsequence: %d\nprob: %f\ntreeDens %f\npropBurn %f\n\n",size,printIts,sequence,prob,treeDens,propBurn);
 
 return 1;
 
