@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <ctype.h>
+#include <time.h>
 #define USAGE "usage: wildfire [-pN] size probability density proportion\nThe -pN option tells the simulation to print N cycles then stop\nThe probability is the probability a tree will catch on fire.\n"
 
 
@@ -25,7 +26,7 @@
  * @param propBurn: the proportion of initial trees that are burning
  * all arguments besides argc are pointers to the variable truly holding the described data
  */
-int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn) {
+static int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn) {
 
 	// check number of arguments
 	if(argc != 5 && argc != 6) {
@@ -114,18 +115,78 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
 		return EXIT_FAILURE;
 	}
 	else {
+		// change integers to decimal representation of percentages
+		*prob = *prob/100.0;
+		*treeDens = *treeDens/100.0;
+		*propBurn = *propBurn/100.0;
+
 		return EXIT_SUCCESS;
 	}
 }
 
-/* main simulation execution  */
+/* initialize the forrest
+ * @param size: the length of the sides of the board
+ * @param f: pointer to the forrest variable
+ * @param dens: the probability of a tree existing
+ * @param prop: the probability of an existing tree burning
+ */
+static void initBoard(int size, char f[][size], float dens, float prop) {
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			double d = (double)rand()/(double)RAND_MAX;
+			double b = (double)rand()/(double)RAND_MAX;
+			if(d < dens) {
+				if(b < prop) {
+					f[i][j] = '*';
+				}
+				else {
+					f[i][j] = 'Y';
+				}
+			}
+			else {
+				f[i][j] = ' ';
+			}
+		}
+	}
+	
+}
+
+static void printBoard(int size, char f[][size]) {
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			printf("%c",f[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+/* main simulation execution
+ * @param argc: number of argument passed from command line
+ * @param argv: list of arguments passed from command line (pointer)
+*/
 int main(int argc, char** argv) {
 
-	int gridSize,printIterations,sequenceMode;
-	float probability,density,proportion;
+	static int printIterations,sequenceMode,cycles,changes;
+	static float probability,density,proportion;
+	int gridSize;
 	
 	if(handleArgs(argc, argv, &gridSize, &printIterations, &sequenceMode, &probability, &density, &proportion) == EXIT_FAILURE) {
 		return EXIT_FAILURE;
+	}
+
+	char forest[gridSize][gridSize];
+	srand(time(NULL));	
+	initBoard(gridSize,forest,density,proportion);
+
+	cycles = 0;
+	changes = 0;
+
+	if(sequenceMode) {
+		while(cycles < printIterations) {
+			printBoard(gridSize,forest);
+			printf("cycle %d, size %d, probability %0.2f, density %0.2f, proportion %0.2f, changes %d\n",cycles,gridSize,probability,density,proportion,changes);
+			cycles++;
+		}
 	}
 
 	return EXIT_SUCCESS;
