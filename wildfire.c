@@ -13,31 +13,34 @@
 #include <ctype.h>
 #define USAGE "usage: wildfire [-pN] size probability density proportion\nThe -pN option tells the simulation to print N cycles then stop\nThe probability is the probability a tree will catch on fire.\n"
 
-int main(int argc, char ** argv) {\
 
-	int opt,size,printIts,sequence;
-	float prob,treeDens,propBurn;
-	
-	// set defaults
-	sequence = 0;
-	printIts = 0;
-	size = 10;
-	prob = 0.15;
-	treeDens = 0.15;
-	propBurn = 0.15;	
+/* parses arguments and checks validity; appropriately stores values if acceptable
+ * @param argc: number of arguments passed into main
+ * @param argv: list of arguments passed into main 
+ * @param size: specified size of grid 
+ * @param printIts: specified number of iterations to print to console (optional)
+ * @param sequence: toggle for display method
+ * @param prob: the probability a tree is going to catch on fire/burn out
+ * @param treeDens: the initial probability of a tree existing
+ * @param propBurn: the proportion of initial trees that are burning
+ * all arguments besides argc are pointers to the variable truly holding the described data
+ */
+int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn) {
 
+	// check number of arguments
 	if(argc != 5 && argc != 6) {
-		fprintf(stderr, "Incorrect number of arguments.\n");
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
 
+	// check flag arguments (optional)
+	int opt;
 	while((opt = getopt(argc,argv,"p:")) != -1) {
 		switch(opt) {
 			case 'p':
-				sequence = 1;
+				*sequence = 1;
 				if(isdigit(optarg[0])) {
-					printIts = strtol(optarg,NULL,10);
+					*printIts = strtol(optarg,NULL,10);
 				}
 				else {
 					fprintf(stderr, "The -pN option was invalid.\n");
@@ -48,67 +51,83 @@ int main(int argc, char ** argv) {\
 		}
 	}
 
+	// parse and store remaining arguments
 	for(int i = optind; i < argc; i++) {
 		if(optind == 2) {
 			switch(i) {
 				case 2:
-					size = strtol(argv[i],NULL,10);
+					*size = strtol(argv[i],NULL,10);
 					break;
 				case 3: 
-					prob = strtof(argv[i],NULL);
+					*prob = strtof(argv[i],NULL);
 					break;
 				case 4:
-					treeDens = strtof(argv[i],NULL);
+					*treeDens = strtof(argv[i],NULL);
 					break;
 				case 5:
-					propBurn = strtof(argv[i],NULL);
+					*propBurn = strtof(argv[i],NULL);
 					break;
 			}
 		}
 		else if(optind == 1) {
 			switch(i) {
 				case 1:
-					size = strtol(argv[i],NULL,10);
+					*size = strtol(argv[i],NULL,10);
 					break;	
 				case 2:
-					prob = strtof(argv[i],NULL);
+					*prob = strtof(argv[i],NULL);
 					break;
 				case 3: 
-					treeDens = strtof(argv[i],NULL);
+					*treeDens = strtof(argv[i],NULL);
 					break;
 				case 4:
-					propBurn = strtof(argv[i],NULL);
+					*propBurn = strtof(argv[i],NULL);
 					break;
 			}
 		}
 	}
 
-	if(printIts < 0) {
+	// check validity of arguments and print error messages if necessary
+	if(*printIts < 0) {
 		fprintf(stderr, "The -pN option was negative.\n");
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
-	if(size < 5 || size > 40) {
-		fprintf(stderr, "The size (%d) must be an integer in [5...40].\n",size);
+	if(*size < 5 || *size > 40) {
+		fprintf(stderr, "The size (%d) must be an integer in [5...40].\n",*size);
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
-	if(prob < 0 || prob > 100) {
-		fprintf(stderr, "The probability (%f) must be an integer in [0...100]/\n",prob);
+	if(*prob < 0 || *prob > 100) {
+		fprintf(stderr, "The probability (%f) must be an integer in [0...100]/\n",*prob);
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
-	if(treeDens < 0 || treeDens > 100) {
-		fprintf(stderr, "The density (%f) must be an integer in [0...100].\n",treeDens);
+	if(*treeDens < 0 || *treeDens > 100) {
+		fprintf(stderr, "The density (%f) must be an integer in [0...100].\n",*treeDens);
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
-	if(propBurn < 0 || propBurn > 100) {
-		fprintf(stderr, "The proportion (%f) must be an integer in [0...100].\n",propBurn);
+	if(*propBurn < 0 || *propBurn > 100) {
+		fprintf(stderr, "The proportion (%f) must be an integer in [0...100].\n",*propBurn);
 		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	else {
+		return EXIT_SUCCESS;
+	}
+}
+
+/* main simulation execution  */
+int main(int argc, char** argv) {
+
+	int gridSize,printIterations,sequenceMode;
+	float probability,density,proportion;
+	
+	if(handleArgs(argc, argv, &gridSize, &printIterations, &sequenceMode, &probability, &density, &proportion) == EXIT_FAILURE) {
 		return EXIT_FAILURE;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 
 }
