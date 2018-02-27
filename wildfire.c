@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <getopt.h>
-
 /*
  * author: Gianna Mule, gqm2162
  * 3/1/18
@@ -10,6 +5,13 @@
  * A cell may be EMPTY (0), TREE (1), BURNING (2), or BURNT (3).
  * State changes occur as a function of the variable probability, which defaults to 0.15, but may be specified by the user.
 */
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <ctype.h>
+#define USAGE "usage: wildfire [-pN] size probability density proportion\nThe -pN option tells the simulation to print N cycles then stop\nThe probability is the probability a tree will catch on fire.\n"
 
 int main(int argc, char ** argv) {\
 
@@ -24,11 +26,24 @@ int main(int argc, char ** argv) {\
 	treeDens = 0.15;
 	propBurn = 0.15;	
 
+	if(argc != 5 && argc != 6) {
+		fprintf(stderr, "Incorrect number of arguments.\n");
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+
 	while((opt = getopt(argc,argv,"p:")) != -1) {
 		switch(opt) {
 			case 'p':
 				sequence = 1;
-				printIts = strtol(optarg,NULL,10);
+				if(isdigit(optarg[0])) {
+					printIts = strtol(optarg,NULL,10);
+				}
+				else {
+					fprintf(stderr, "The -pN option was invalid.\n");
+					printf(USAGE);
+					return EXIT_FAILURE;
+				}
 				break;
 		}
 	}
@@ -68,8 +83,32 @@ int main(int argc, char ** argv) {\
 		}
 	}
 
-	printf("size: %d\nprintIts: %d\nsequence: %d\nprob: %f\ntreeDens %f\npropBurn %f\n\n",size,printIts,sequence,prob,treeDens,propBurn);
+	if(printIts < 0) {
+		fprintf(stderr, "The -pN option was negative.\n");
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	if(size < 5 || size > 40) {
+		fprintf(stderr, "The size (%d) must be an integer in [5...40].\n",size);
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	if(prob < 0 || prob > 100) {
+		fprintf(stderr, "The probability (%f) must be an integer in [0...100]/\n",prob);
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	if(treeDens < 0 || treeDens > 100) {
+		fprintf(stderr, "The density (%f) must be an integer in [0...100].\n",treeDens);
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	if(propBurn < 0 || propBurn > 100) {
+		fprintf(stderr, "The proportion (%f) must be an integer in [0...100].\n",propBurn);
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
 
-return 1;
+	return 0;
 
 }
