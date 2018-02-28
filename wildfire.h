@@ -33,6 +33,7 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
  * @param f: pointer to the forrest variable
  * @param dens: the probability of a tree existing
  * @param prop: the probability of an existing tree burning
+ * @return EXIT_SUCCESS if all arguments are valid, EXIT_FAILURE else
  */
 void initBoard(int size, Cell f[][size], float dens, float prop);
 
@@ -50,12 +51,20 @@ void printBoard(int size, Cell f[][size]);
  * @param prob: the probability of a tree catching fire
  * @param c: a pointer to the number of changes for this configuration
  */
-void applySpread(int size, Cell f[][size], float prob, int* c);
+void spread(int size, Cell f[][size], float prob, int* c);
 
 /*
  * the method to update the board to match the data collected from applySpread
  * @param size: the width of the matrix
  * @param f: the grid/matrix/forest
  */
-void spread(int size, Cell f[][size]);
+void applySpread(int size, Cell f[][size]);
+
+/* 
+ * check current configuration to see if all fires have been put out
+ * @param size: the width of the matrix
+ * @param f: the grid/matrix/foreset
+ * @return EXIT_FAILURE if there is at least 1 fire still burning, EXIT_SUCCESS else
+ */
+int checkFires(int size, Cell f[][size]);
 #endif //end of WILDFIRE_H include guard

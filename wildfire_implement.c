@@ -13,9 +13,33 @@
 #include "wildfire.h"
 
 /*
- * Name:	spread
+ * Name:	checkFires
  */
-void spread(int size, Cell f[][size]) {
+int checkFires(int size, Cell f[][size]) {
+	int firesOut = 1;
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			if(f[i][j].symb == '*') {
+				firesOut = 0;
+				break;
+			}
+		}
+		if(firesOut == 0) {
+			break;
+		}
+	}
+	if(firesOut == 1) {
+		return EXIT_SUCCESS;
+	}
+	else {
+		return EXIT_FAILURE;
+	}
+}
+
+/*
+ * Name:	applySpread
+ */
+void applySpread(int size, Cell f[][size]) {
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
 			f[i][j].symb = f[i][j].nextSymb;
@@ -102,9 +126,9 @@ static void countNeighbors(int size, int row, int col, Cell f[][size]) {
 
 
 /*
- * Name:	applySpread
+ * Name:	spread
  */
-void applySpread(int size, Cell f[][size],float prob, int* c) {
+void spread(int size, Cell f[][size],float prob, int* c) {
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
 			if(f[i][j].symb == 'Y') {
@@ -113,11 +137,15 @@ void applySpread(int size, Cell f[][size],float prob, int* c) {
 					(*c)++;
 					f[i][j].nextSymb = '*';
 				}
+				else {
+					f[i][j].nextSymb = 'Y';
+				}
 			}
 			else if((f[i][j].symb == '*') && (double)rand()/(double)RAND_MAX < prob) {
 					(*c)++;					
 					f[i][j].nextSymb = '_';
 			}
+
 			else {
 				f[i][j].nextSymb = f[i][j].symb;
 			}
@@ -190,6 +218,11 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
 					printf(USAGE);
 					return EXIT_FAILURE;
 				}
+				break;
+			default:
+				fprintf(stderr, "The -pN option was invalid.\n");
+				printf(USAGE);
+				return EXIT_FAILURE;
 				break;
 		}
 	}
