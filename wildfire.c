@@ -18,13 +18,14 @@
 int main(int argc, char** argv) {
 
 	// declare some variables
-	static int printIterations,sequenceMode,cycles,changes;
+	static int printIterations,sequenceMode,cycles,changes,totalChanges;
 	static float probability,density,proportion;
 	int gridSize;	
 
 	// initialize some of those variables to a default value
 	cycles = 0;
 	changes = 0;
+	totalChanges = 0;
 
 	// handle and check arguments
 	if(handleArgs(argc, argv, &gridSize, &printIterations, &sequenceMode, &probability, &density, &proportion) == EXIT_FAILURE) {
@@ -43,9 +44,12 @@ int main(int argc, char** argv) {
 		while(cycles < printIterations) {
 			// show this configuration and some data about this configuration
 			printBoard(gridSize,forest);
-			printf("cycle %d, size %d, probability %0.2f, density %0.2f, proportion %0.2f, changes %d\n\n",cycles,gridSize,probability,density,proportion,changes);
+			printf("cycle %d, size %d, probability %0.2f, density %0.2f, proportion %0.2f, changes %d\n\n",cycles,gridSize,probability,density,proportion,changes);	
+			// increment total changes and set changes to 0 for next iteration
+			totalChanges += changes;
+			changes *= 0;
 			// configure the next board
-//			applySpread(gridSize,forest,probability,&changes);
+			applySpread(gridSize,forest,probability,&changes);
 			// update the board
 //			spread(gridSize,forest);
 			// increment the number of cycles gone through

@@ -6,10 +6,12 @@
 /*
  * structure definition for tree struct
  * @param symb: the symbol to represent this Cell (Y, *, ' ',or _);
- * @param burnNeighbs: the number of neighbors burning in the current configuration
+ * @param nextSymb: the symbol for this Cell in the next configuration (Y, *, ' ', or _)
+ * @param burnNeighbs: the proportion out of 100 of neighbors burning in the current configuration
  */
 typedef struct Cells {
 	char symb;
+	char nextSymb;
 	int burnNeighbs;
 } Cell;
 
@@ -48,7 +50,7 @@ void printBoard(int size, Cell f[][size]);
  * @param prob: the probability of a tree catching fire
  * @param c: a pointer to the number of changes for this configuration
  */
-void applySpread(int size, Cell f[][size], int prob, int* c);
+void applySpread(int size, Cell f[][size], float prob, int* c);
 
 /*
  * the method to update the board to match the data collected from applySpread

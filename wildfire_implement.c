@@ -2,7 +2,8 @@
  * author: Gianna Mule, gqm2162
  * 3/1/18
  * This file is defines all functions for wildfire.c, where simulation takes place
-*/
+ * associated header (wildfie.h) holds struct definition, method headers, and constants
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,7 +11,112 @@
 #include <getopt.h>
 #include <ctype.h>
 #include "wildfire.h"
-#define USAGE "usage: wildfire [-pN] size probability density proportion\nThe -pN option tells the simulation to print N cycles then stop\nThe probability is the probability a tree will catch on fire.\n"
+
+/*
+ * Name:	spread
+ */
+
+/*
+ * Name:	countNeighbors
+ * private method to count burning neighbors in this config for a given cell
+ * @param size: size of matrix
+ * @param row: row of cell in question
+ * @param col: column of cell in question
+ * @param f: grid/matrix/forest
+ */
+static void countNeighbors(int size, int row, int col, Cell f[][size]) {
+	int rowBefore, rowAfter, colBefore, colAfter;
+	float burning,total;
+	rowBefore = row-1;
+	rowAfter = row+1;
+	colBefore = col-1;
+	colAfter = col+1;
+	burning = 0;
+	total = 0;
+
+	// check all possible spots for neighbors
+	if(colBefore > 0) {
+		total++;
+		if(f[row][colBefore].symb == '*') {
+			burning++;
+		}
+	}
+
+	if(colAfter < size) {
+		total++;
+		if(f[row][colAfter].symb == '*') {
+			burning++;
+		}
+	}
+
+	if(rowBefore > 0) {
+		if(colBefore > 0) {
+			total++;
+			if(f[rowBefore][colBefore].symb == '*') {
+				burning++;
+			}
+		}
+		total++;
+		if(f[rowBefore][col].symb == '*') {
+			burning++;
+		}
+		if(colAfter < size) {
+			total++;
+			if(f[rowBefore][colAfter].symb == '*') {
+				burning++;
+			}
+		}
+	}
+
+	if(rowAfter < size) {
+		if(colBefore > 0) {
+			total++;
+			if(f[rowAfter][colBefore].symb == '*') {
+				burning++;
+			}
+		}
+		total++;
+		if(f[rowAfter][col].symb == '*') {
+			burning++;
+		}
+		if(colAfter < size) {
+			total++;
+			if(f[rowAfter][colAfter].symb == '*') {
+				burning++;
+			}
+		}
+	}
+
+	// calculate proportion burning
+	float b = burning/total;
+	b = b*100;
+	f[row][col].burnNeighbs = ((int)b);
+}
+
+
+/*
+ * Name:	applySpread
+ */
+void applySpread(int size, Cell f[][size],float prob, int* c) {
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			if(f[i][j].symb == 'Y') {
+				countNeighbors(size, i, j, f);
+				if((f[i][j].burnNeighbs >= 25) && ((double)rand()/(double)RAND_MAX < prob)) {
+					(*c)++;
+					f[i][j].nextSymb = '*';
+				}
+			}
+			else if((f[i][j].symb == '*') && (double)rand()/(double)RAND_MAX < prob) {
+					(*c)++;					
+					f[i][j].nextSymb = '_';
+			}
+			else {
+				f[i][j].nextSymb = f[i][j].symb;
+			}
+		}
+	}		
+}
 
 /*
  * Name:	printBoard
