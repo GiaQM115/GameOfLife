@@ -29,7 +29,7 @@ typedef struct Cells {
 int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn);
 
 /* initialize the forrest
- * @param size: the length of the sides of the board
+ 2* @param size: the length of the sides of the board
  * @param f: pointer to the forrest variable
  * @param dens: the probability of a tree existing
  * @param prop: the probability of an existing tree burning
@@ -37,7 +37,7 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
  */
 void initBoard(int size, Cell f[][size], float dens, float prop);
 
-/* print the board, cell by cell
+/* print the board, cell by cell, without clearing the previous configuration
  * @param size: the width of the matrix
  * @param f: the grid/matrix/forest to be printed 
  */
@@ -67,4 +67,12 @@ void applySpread(int size, Cell f[][size]);
  * @return EXIT_FAILURE if there is at least 1 fire still burning, EXIT_SUCCESS else
  */
 int checkFires(int size, Cell f[][size]);
+
+/*
+`* display the board, cell by cell, using cursor controlled output
+ * @param size: the width of the matrix
+ * @param f: the grid/matrix/forest
+ */
+void writeBoard(int size, Cell f[][size]); 
+
 #endif //end of WILDFIRE_H include guard

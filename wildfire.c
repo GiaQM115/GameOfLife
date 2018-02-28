@@ -10,6 +10,7 @@
 #include <time.h>
 #include <stdio.h>
 #include "wildfire.h"
+#include "display.h"
 
 /* main simulation execution
  * @param argc: number of argument passed from command line
@@ -33,6 +34,7 @@ int main(int argc, char** argv) {
 	totalChanges = 0;
 	if(!sequenceMode) {
 		printIterations = 1;
+		clear();
 	}
 
 	// forest is declared here so that gridSize isn't null
@@ -49,7 +51,7 @@ int main(int argc, char** argv) {
 			printBoard(gridSize,forest);
 		}
 		else {
-			//cursor controlled display method
+			writeBoard(gridSize,forest);
 			printIterations++; // keep the loop going forever if not in sequence mode
 		}
 		printf("cycle %d, size %d, probability %0.2f, density %0.2f, proportion %0.2f, changes %d\n",cycles,gridSize,probability,density,proportion,changes);	

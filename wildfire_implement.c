@@ -5,12 +5,28 @@
  * associated header (wildfie.h) holds struct definition, method headers, and constants
  */
 
+#define _BSD_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
 #include "wildfire.h"
+#include "display.h"
+
+/*
+ * Name:	writeBoard
+ */
+void writeBoard(int size, Cell f[][size]) {
+	set_cur_pos(1,0);
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			put(f[i][j].symb);
+		}
+		set_cur_pos(i+1,0);
+	}
+	usleep(81000);
+}
 
 /*
  * Name:	checkFires
