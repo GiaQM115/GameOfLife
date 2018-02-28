@@ -8,11 +8,78 @@
 #define _BSD_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
 #include "wildfire.h"
 #include "display.h"
+
+/*
+ * determine which Cells are susceptible to increased probability of catching fire due to wind
+ * @param size: the width of the matrix
+ * @param f: grid/matrix/forest
+ * @param speed: wind speed
+ * @param dir: wind direction
+ * @param row: row of current cell in question (site)
+ * @param col: col of current cell in question (site)
+ */
+static void findWindDirs(int size, Cell f[][size], int speed, char* dir, int row, int col) {
+	for(int s = 1; s < speed; s++) {
+		if(strcmp(dir,"N\0")) {
+			if(row - s > 0) {
+				if(col + s < size && col - s > 0) {
+					f[row-s][col-s].isWindDir = 't';
+					f[row-s][col].isWindDir = 't';
+					f[row-s][col+s].isWindDir = 't';
+				}
+			}
+		}		
+		else if(strcmp(dir,"S\0")) {
+			if(row + s < size) {
+				if(col + s < size && col - s > 0) {
+					f[row+s][col-s].isWindDir = 't';
+					f[row+s][col].isWindDir = 't';
+					f[row+s][col+s].isWindDir = 't';
+				}
+			}
+		}
+		else if(strcmp(dir,"E\0")) {	
+			if(col + s < size) {
+				if(row + s < size && row - s > 0) {
+					f[row+s][col+s].isWindDir = 't';
+					f[row][col+s].isWindDir = 't';
+					f[row-s][col+s].isWindDir = 't';
+				}
+			}
+		}
+		else if(strcmp(dir,"W\0")) {
+			if(col - s > 0) {
+				if(row + s < size && row - s > 0) {
+					f[row+s][col+s].isWindDir = 't';
+					f[row][col+s].isWindDir = 't';
+					f[row-s][col+s].isWindDir = 't';
+				}
+			}
+		}
+	}
+}
+
+/*
+ * loop through all Cells to find which neighbors are susceptible to increased threat by wind
+ * @param size: the width of the matrix
+ * @param f: grid/matrix/forest
+ * @param speed: wind speed
+ * @param dir: wind direction
+ * @param row: row of current cell in question (site)
+ */
+static void windThreats(int size, Cell f[][size], int speed, char* dir) {
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			findWindDirs(size, f, speed, dir, i, j);
+		}
+	}
+}
 
 /*
  * Name:	writeBoard
@@ -31,8 +98,9 @@ void writeBoard(int size, Cell f[][size]) {
 /*
  * Name:	checkFires
  */
-int checkFires(int size, Cell f[][size]) {
+int checkFires(int size, Cell f[][size], float* ratio, int trees) {
 	int firesOut = 1;
+	//find any remaining fires
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
 			if(f[i][j].symb == '*') {
@@ -45,6 +113,16 @@ int checkFires(int size, Cell f[][size]) {
 		}
 	}
 	if(firesOut == 1) {
+		float b = 0;
+		//count how many burned trees
+		for(int i = 0; i < size; i++) {
+			for(int j = 0; j < size; j++) {
+				if(f[i][j].symb == '_') {
+					b++;
+				}
+			}
+		}
+		*ratio = b/((float)trees);
 		return EXIT_SUCCESS;
 	}
 	else {
@@ -64,8 +142,7 @@ void applySpread(int size, Cell f[][size]) {
 }
 
 /*
- * Name:	countNeighbors
- * private method to count burning neighbors in this config for a given cell
+ * count burning neighbors in this config for a given cell
  * @param size: size of matrix
  * @param row: row of cell in question
  * @param col: column of cell in question
@@ -144,12 +221,17 @@ static void countNeighbors(int size, int row, int col, Cell f[][size]) {
 /*
  * Name:	spread
  */
-void spread(int size, Cell f[][size],float prob, int* c) {
+void spread(int size, Cell f[][size],float prob, int* c, int speed, char* dir) {
+	float probMod = 0.0;
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
+			windThreats(size, f, speed, dir);
 			if(f[i][j].symb == 'Y') {
 				countNeighbors(size, i, j, f);
-				if((f[i][j].burnNeighbs >= 25) && ((double)rand()/(double)RAND_MAX < prob)) {
+				if(f[i][j].isWindDir == 't') {
+					probMod = (0.5 * speed);
+				}
+				if((f[i][j].burnNeighbs >= 25) && ((double)rand()/(double)RAND_MAX < prob+probMod)) {
 					(*c)++;
 					f[i][j].nextSymb = '*';
 				}
@@ -184,13 +266,15 @@ void printBoard(int size, Cell  f[][size]) {
 /*
  * Name: 	initBoard
  */
-void initBoard(int size, Cell f[][size], float dens, float prop) {
+int initBoard(int size, Cell f[][size], float dens, float prop) {
+	int t = 0;
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
 			double d = (double)rand()/(double)RAND_MAX;
 			double b = (double)rand()/(double)RAND_MAX;
 			Cell c;
 			if(d < dens) {
+				t++;
 				if(b < prop) {
 					c.symb = '*';
 				}
@@ -205,23 +289,24 @@ void initBoard(int size, Cell f[][size], float dens, float prop) {
 			f[i][j] = c;
 		}
 	}
-	
+	return t;
 }
 
 /*
  * Name:	handleArgs
  * big mess of a method because passing all the params in is a pain; it's gross, it's long, I'm sorry
  */
-int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn) {
+int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn, int* speed, char** dir) {
 
+	int opt;
+	
 	// check number of arguments
-	if(argc != 5 && argc != 6) {
+	if(argc != 5 && argc != 6 && argc != 7 && argc != 8) {
 		printf(USAGE);
 		return EXIT_FAILURE;
 	}
 
 	// check flag arguments (optional)
-	int opt;
 	while((opt = getopt(argc,argv,"p:")) != -1) {
 		switch(opt) {
 			case 'p':
@@ -259,6 +344,11 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
 				case 5:
 					*propBurn = strtof(argv[i],NULL);
 					break;
+				case 6: 
+					*speed = strtol(argv[i],NULL,10);
+					break;
+				case 7: 
+					*dir = argv[i];
 			}
 		}
 		else if(optind == 1) {
@@ -275,6 +365,11 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
 				case 4:
 					*propBurn = strtof(argv[i],NULL);
 					break;
+				case 5: 
+					*speed = strtol(argv[i],NULL,10);
+					break;
+				case 6: 
+					*dir = argv[i];
 			}
 		}
 	}
@@ -304,6 +399,16 @@ int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, f
 		fprintf(stderr, "The proportion (%f) must be an integer in [0...100].\n",*propBurn);
 		printf(USAGE);
 		return EXIT_FAILURE;
+	}
+	if(*speed < 0 || *speed > 2) {
+		fprintf(stderr, "The wind speed (%d) must be an integer in [0...2].\n",*speed);
+		printf(USAGE);
+		return EXIT_FAILURE;
+	}
+	if((strcmp(*dir,"X\0") != 0) &&(strcmp(*dir,"N\0") != 0) && (strcmp(*dir,"S\0") != 0) && (strcmp(*dir,"E\0") != 0) && (strcmp(*dir,"W\0") != 0)) {
+	fprintf(stderr, "The wind direction (%s) must be either N, S, E, or W.\n",*dir);
+	printf(USAGE);
+	return EXIT_FAILURE;
 	}
 	else {
 		// change integers to decimal representation of percentages

@@ -19,12 +19,16 @@
 int main(int argc, char** argv) {
 
 	// declare some variables
-	static int printIterations,sequenceMode,cycles,changes,totalChanges;
-	static float probability,density,proportion;
+	static int printIterations,sequenceMode,cycles,changes,totalChanges,windSpeed,totalTrees;
+	static float probability,density,proportion,ratioBurned;
+	static char* windDirection;
 	int gridSize;	
 
+	//set defaults for optional commandline arguments
+	windSpeed = 0;
+	windDirection = "X\0";
 	// handle and check arguments
-	if(handleArgs(argc, argv, &gridSize, &printIterations, &sequenceMode, &probability, &density, &proportion) == EXIT_FAILURE) {
+	if(handleArgs(argc, argv, &gridSize, &printIterations, &sequenceMode, &probability, &density, &proportion, &windSpeed, &windDirection) == EXIT_FAILURE) {
 		return EXIT_FAILURE;
 	}
 		
@@ -42,7 +46,7 @@ int main(int argc, char** argv) {
 	
 	// intialize the state of the board/forest
 	srand(time(NULL));	
-	initBoard(gridSize,forest,density,proportion);
+	totalTrees = initBoard(gridSize,forest,density,proportion);
 	
 	while(cycles < printIterations) {
 		
@@ -61,13 +65,13 @@ int main(int argc, char** argv) {
 		changes *= 0;
 		
 		// check if the latest configuration is without-fires
-		if(checkFires(gridSize,forest) == EXIT_SUCCESS) {
-			printf("fires are out after %d cumulative changes\n",totalChanges);
+		if(checkFires(gridSize,forest,&ratioBurned,totalTrees) == EXIT_SUCCESS) {
+			printf("fires are out after %d cumulatiive changes\n",totalChanges);
 			break;
 		}
 	
 		// configure the next board
-		spread(gridSize,forest,probability,&changes);
+		spread(gridSize,forest,probability,&changes,windSpeed,windDirection);
 		
 		// update the board
 		applySpread(gridSize,forest);

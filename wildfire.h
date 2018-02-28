@@ -7,11 +7,13 @@
  * structure definition for tree struct
  * @param symb: the symbol to represent this Cell (Y, *, ' ',or _);
  * @param nextSymb: the symbol for this Cell in the next configuration (Y, *, ' ', or _)
+ * @param inWindDir: holds t if this cell is in the direction of the wind, f if not
  * @param burnNeighbs: the proportion out of 100 of neighbors burning in the current configuration
  */
 typedef struct Cells {
 	char symb;
 	char nextSymb;
+	char isWindDir;
 	int burnNeighbs;
 } Cell;
 
@@ -25,17 +27,18 @@ typedef struct Cells {
  * @param treeDens: the initial probability of a tree existing
  * @param propBurn: the proportion of initial trees that are burning
  * all arguments besides argc are pointers to the variable truly holding the described data
+ * @return EXIT_SUCCESS if all arguments are valid, else EXIT_FAILURE
  */
-int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn);
+int handleArgs(int argc, char** argv, int* size, int* printIts, int* sequence, float* prob, float* treeDens, float* propBurn, int* speed, char** dir);
 
 /* initialize the forrest
  2* @param size: the length of the sides of the board
  * @param f: pointer to the forrest variable
  * @param dens: the probability of a tree existing
  * @param prop: the probability of an existing tree burning
- * @return EXIT_SUCCESS if all arguments are valid, EXIT_FAILURE else
+ * @return number of trees in forest
  */
-void initBoard(int size, Cell f[][size], float dens, float prop);
+int initBoard(int size, Cell f[][size], float dens, float prop);
 
 /* print the board, cell by cell, without clearing the previous configuration
  * @param size: the width of the matrix
@@ -51,7 +54,7 @@ void printBoard(int size, Cell f[][size]);
  * @param prob: the probability of a tree catching fire
  * @param c: a pointer to the number of changes for this configuration
  */
-void spread(int size, Cell f[][size], float prob, int* c);
+void spread(int size, Cell f[][size], float prob, int* c, int speed, char* dir);
 
 /*
  * the method to update the board to match the data collected from applySpread
@@ -66,7 +69,7 @@ void applySpread(int size, Cell f[][size]);
  * @param f: the grid/matrix/foreset
  * @return EXIT_FAILURE if there is at least 1 fire still burning, EXIT_SUCCESS else
  */
-int checkFires(int size, Cell f[][size]);
+int checkFires(int size, Cell f[][size], float* ratio, int trees);
 
 /*
 `* display the board, cell by cell, using cursor controlled output
