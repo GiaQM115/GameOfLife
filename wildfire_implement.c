@@ -15,6 +15,13 @@
 /*
  * Name:	spread
  */
+void spread(int size, Cell f[][size]) {
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			f[i][j].symb = f[i][j].nextSymb;
+		}
+	}			
+}
 
 /*
  * Name:	countNeighbors

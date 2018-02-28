@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 			// configure the next board
 			applySpread(gridSize,forest,probability,&changes);
 			// update the board
-//			spread(gridSize,forest);
+			spread(gridSize,forest);
 			// increment the number of cycles gone through
 			cycles++;
 		}
