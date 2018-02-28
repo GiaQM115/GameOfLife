@@ -1,3 +1,9 @@
+/*
+ * Author: Gianna Mule, gqm216
+ * date: 3/1/17
+ * header file for implementation of wildfire simulation
+ */
+
 #ifndef WILDFIRE_H
 #define WILDFIRE_H
 

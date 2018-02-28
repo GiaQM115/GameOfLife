@@ -66,7 +66,10 @@ int main(int argc, char** argv) {
 		
 		// check if the latest configuration is without-fires
 		if(checkFires(gridSize,forest,&ratioBurned,totalTrees) == EXIT_SUCCESS) {
-			printf("fires are out after %d cumulatiive changes\n",totalChanges);
+			printf("fires are out after %d cumulative changes\n",totalChanges);
+			FILE* avgs = fopen("averages.txt","a\0");
+			fprintf(avgs,"%d\n",((int)(ratioBurned*100)));
+			fclose(avgs);
 			break;
 		}
 	
